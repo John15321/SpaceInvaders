@@ -35,6 +35,7 @@ class Player:
             self.playerX += 1
 
 
+
 # Initializing the pygame module
 pygame.init()
 
