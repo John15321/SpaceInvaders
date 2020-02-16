@@ -1,10 +1,16 @@
 import pygame
 import sys
+
+# Game Over Function
+def GameOver():
+    print("GAME OVER")
+    pygame.event.wait()
+
 # Player class
 class Player:
     GoingLeft = 0
     GoingRight = 0
-
+    status = 1
     def __init__(self, screen_width, screen_height, icon_name):
 
         # The starship is 64x64 pixels
@@ -29,10 +35,54 @@ class Player:
         self.GoingRight = 0
 
     def move(self):
-        if self.GoingLeft == 1:
+        if (self.GoingLeft == 1) and (self.playerX >= 0):
             self.playerX -= 1
-        if self.GoingRight == 1:
+        if (self.GoingRight == 1) and (self.playerX <= width - self.playerImg.get_width()):
             self.playerX += 1
+
+
+
+# -------------------------------------------------------------------------------------------------------
+
+# Enemy Class
+class Enemy:
+    GoingLeft = 0
+    GoingRight = 0
+    def __init__(self, screen_width, screen_height, icon_name, x0, y0):
+
+        # The starship is 64x64 pixels
+        self.enemyImg = pygame.image.load(icon_name)
+        self.enemyY = y0
+        self.enemyX = x0
+        self.dead_or_alive = 1
+        self.GoingRight = 1
+
+    # Drawing the player
+    def draw(self):
+        screen.blit(self.enemyImg, (self.enemyX, self.enemyY))
+
+    def go_left(self):
+        self.GoingLeft = 1
+
+    def go_right(self):
+        self.GoingRight = 1
+
+    def stop_left(self):
+        self.GoingLeft = 0
+
+    def stop_right(self):
+        self.GoingRight = 0
+
+    def move(self):
+        if (self.enemyX == (width - self.enemyImg.get_width())):
+            self.enemyX = 0
+            self.enemyY += 64
+            if self.enemyY == 448:
+                GameOver()
+        if (self.GoingLeft == 1) and (self.enemyX >= 0):
+            self.enemyX -= 0.25
+        if (self.GoingRight == 1) and (self.enemyX <= width - self.enemyImg.get_width()):
+            self.enemyX += 0.25
 
 
 
@@ -57,6 +107,16 @@ pygame.display.set_icon(icon)
 # Enemy icon by Icons made by <a href="https://www.flaticon.com/authors/smashicons" title="Smashicons">Smashicons</a> from <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a>
 
 player = Player(width, height, "main_starship.png")
+
+# Our list of enemies (we will have only six)
+enemy_list = []
+# Enemy(width, height, "main_enemy.png", 0, 0)
+# enemy_list = list(enemy_list)
+# Adding 6 enemies (6 so they fit nicely)
+for i in range(0, 8):
+    enemy = Enemy(width, height, "main_enemy.png", i*64+32*i+20*(i+1), 0)
+    enemy_list.append(enemy)
+
 
 # Main Game Loop
 while running:
@@ -85,6 +145,11 @@ while running:
                 player.stop_right()
     player.move()
     player.draw()
+
+    # Going thru all enemies and drawing them
+    for i in enemy_list:
+        i.draw()
+        i.move()
     pygame.display.update()
 
 
