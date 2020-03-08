@@ -5,6 +5,35 @@ import sys
 def GameOver():
     print("GAME OVER")
     pygame.event.wait()
+    running = 0
+    pygame.quit()
+    sys.exit()
+
+
+
+# Bullet
+class Bullet:
+    status = 0
+
+    def __init__(self, icon_name):
+        self.bulletImg = pygame.image.load(icon_name)
+
+    def start(self, X, Y):
+        self.bulletY = Y
+        self.bulletX = X
+        status = 0
+
+    # Drawing the bullet
+
+
+    def move(self):
+        self.bulletY += 1
+        if self.bulletY < 0:
+            status = 0
+
+    def CheckHit(self):
+        pass
+
 
 # Player class
 class Player:
@@ -18,9 +47,15 @@ class Player:
         self.playerY = screen_height - self.playerImg.get_width()
         self.playerX = (screen_width / 2) - (self.playerImg.get_width() / 2)
 
+        # The Bullet
+        self.bullet = Bullet("bullet.png")
+
     # Drawing the player
     def draw(self):
         screen.blit(self.playerImg, (player.playerX, player.playerY))
+        if self.bullet.status == 1:
+            screen.blit(self.bullet.bulletImg, (self.bullet.bulletX, self.bullet.bulletY))
+            self.bullet.move()
 
     def go_left(self):
         self.GoingLeft = 1
@@ -39,8 +74,11 @@ class Player:
             self.playerX -= 1
         if (self.GoingRight == 1) and (self.playerX <= width - self.playerImg.get_width()):
             self.playerX += 1
+        if (self.bullet.status == 1):
+            self.bullet.move()
 
-
+    def shoot(self):
+        self.bullet.start(self.playerX, self.playerY)
 
 # -------------------------------------------------------------------------------------------------------
 
@@ -56,6 +94,8 @@ class Enemy:
         self.enemyX = x0
         self.dead_or_alive = 1
         self.GoingRight = 1
+
+
 
     # Drawing the player
     def draw(self):
@@ -89,13 +129,13 @@ class Enemy:
 # Initializing the pygame module
 pygame.init()
 
-
 # Creating a window
 width = 800
 height = 600
 screen = pygame.display.set_mode((width, height))
 
 running = True
+
 
 # Title and Icon
 pygame.display.set_caption("Space Invaders")
@@ -133,16 +173,23 @@ while running:
             if (event.key == pygame.K_LEFT) or (event.key == pygame.K_a):
                 # Start going left
                 player.go_left()
+                print("go_left()")
             if (event.key == pygame.K_RIGHT) or (event.key == pygame.K_d):
                 # Start going right
                 player.go_right()
-        if event.type == pygame.KEYUP:
-            if (event.key == pygame.K_LEFT) or (event.key == pygame.K_a):
-                # Stop going left
-                player.stop_left()
-            if (event.key == pygame.K_RIGHT) or (event.key == pygame.K_d):
-                # Stop going right
-                player.stop_right()
+                print("go_right()")
+            if event.type == pygame.KEYUP:
+                if (event.key == pygame.K_LEFT) or (event.key == pygame.K_a):
+                    # Stop going left
+                    player.stop_left()
+                    print("stop_left()")
+                if (event.key == pygame.K_RIGHT) or (event.key == pygame.K_d):
+                    # Stop going right
+                    player.stop_right()
+                    print("stop_right()")
+            if event.type == pygame.K_SPACE:
+                player.shoot()
+                print("shoot()")
     player.move()
     player.draw()
 
