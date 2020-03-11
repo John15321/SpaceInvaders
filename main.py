@@ -1,205 +1,172 @@
+import math
+import random
 import pygame
-import sys
-
-# Game Over Function
-def GameOver():
-    print("GAME OVER")
-    pygame.event.wait()
-    running = 0
-    pygame.quit()
-    sys.exit()
 
 
-
-# Bullet
-class Bullet:
-    status = 0
-
-    def __init__(self, icon_name):
-        self.bulletImg = pygame.image.load(icon_name)
-
-    def start(self, X, Y):
-        self.bulletY = Y
-        self.bulletX = X
-        status = 0
-
-    # Drawing the bullet
-
-
-    def move(self):
-        self.bulletY += 1
-        if self.bulletY < 0:
-            status = 0
-
-    def CheckHit(self):
-        pass
-
-
-# Player class
-class Player:
-    GoingLeft = 0
-    GoingRight = 0
-    status = 1
-    def __init__(self, screen_width, screen_height, icon_name):
-
-        # The starship is 64x64 pixels
-        self.playerImg = pygame.image.load(icon_name)
-        self.playerY = screen_height - self.playerImg.get_width()
-        self.playerX = (screen_width / 2) - (self.playerImg.get_width() / 2)
-
-        # The Bullet
-        self.bullet = Bullet("bullet.png")
-
-    # Drawing the player
-    def draw(self):
-        screen.blit(self.playerImg, (player.playerX, player.playerY))
-        if self.bullet.status == 1:
-            screen.blit(self.bullet.bulletImg, (self.bullet.bulletX, self.bullet.bulletY))
-            self.bullet.move()
-
-    def go_left(self):
-        self.GoingLeft = 1
-
-    def go_right(self):
-        self.GoingRight = 1
-
-    def stop_left(self):
-        self.GoingLeft = 0
-
-    def stop_right(self):
-        self.GoingRight = 0
-
-    def move(self):
-        if (self.GoingLeft == 1) and (self.playerX >= 0):
-            self.playerX -= 1
-        if (self.GoingRight == 1) and (self.playerX <= width - self.playerImg.get_width()):
-            self.playerX += 1
-        if (self.bullet.status == 1):
-            self.bullet.move()
-
-    def shoot(self):
-        self.bullet.start(self.playerX, self.playerY)
-
-# -------------------------------------------------------------------------------------------------------
-
-# Enemy Class
-class Enemy:
-    GoingLeft = 0
-    GoingRight = 0
-    def __init__(self, screen_width, screen_height, icon_name, x0, y0):
-
-        # The starship is 64x64 pixels
-        self.enemyImg = pygame.image.load(icon_name)
-        self.enemyY = y0
-        self.enemyX = x0
-        self.dead_or_alive = 1
-        self.GoingRight = 1
-
-
-
-    # Drawing the player
-    def draw(self):
-        screen.blit(self.enemyImg, (self.enemyX, self.enemyY))
-
-    def go_left(self):
-        self.GoingLeft = 1
-
-    def go_right(self):
-        self.GoingRight = 1
-
-    def stop_left(self):
-        self.GoingLeft = 0
-
-    def stop_right(self):
-        self.GoingRight = 0
-
-    def move(self):
-        if (self.enemyX == (width - self.enemyImg.get_width())):
-            self.enemyX = 0
-            self.enemyY += 64
-            if self.enemyY == 448:
-                GameOver()
-        if (self.GoingLeft == 1) and (self.enemyX >= 0):
-            self.enemyX -= 0.25
-        if (self.GoingRight == 1) and (self.enemyX <= width - self.enemyImg.get_width()):
-            self.enemyX += 0.25
-
-
-
-# Initializing the pygame module
+# Intialize the pygame
 pygame.init()
 
-# Creating a window
-width = 800
-height = 600
-screen = pygame.display.set_mode((width, height))
-
-running = True
+# create the screen
+screen = pygame.display.set_mode((800, 600))
 
 
-# Title and Icon
-pygame.display.set_caption("Space Invaders")
-
-icon = pygame.image.load("main_icon.png")
+# Caption and Icon
+pygame.display.set_caption("Space Invader")
+icon = pygame.image.load('main_enemy.png')
 pygame.display.set_icon(icon)
-# Icon author:
-# Icons made by https://www.flaticon.com/authors/itim2101" title="itim2101">itim2101</a> from <a href="https://www.flaticon.com/
-# Enemy icon by Icons made by <a href="https://www.flaticon.com/authors/smashicons" title="Smashicons">Smashicons</a> from <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a>
 
-player = Player(width, height, "main_starship.png")
+# Player
+playerImg = pygame.image.load('main_starship.png')
+playerX = 370
+playerY = 480
+playerX_change = 0
 
-# Our list of enemies (we will have only six)
-enemy_list = []
-# Enemy(width, height, "main_enemy.png", 0, 0)
-# enemy_list = list(enemy_list)
-# Adding 6 enemies (6 so they fit nicely)
-for i in range(0, 8):
-    enemy = Enemy(width, height, "main_enemy.png", i*64+32*i+20*(i+1), 0)
-    enemy_list.append(enemy)
+# Enemy
+enemyImg = []
+enemyX = []
+enemyY = []
+enemyX_change = []
+enemyY_change = []
+num_of_enemies = 6
+
+for i in range(num_of_enemies):
+    enemyImg.append(pygame.image.load('main_enemy.png'))
+    enemyX.append(random.randint(0, 736))
+    enemyY.append(random.randint(50, 150))
+    enemyX_change.append(4)
+    enemyY_change.append(40)
+
+# Bullet
+
+# Ready - You can't see the bullet on the screen
+# Fire - The bullet is currently moving
+
+bulletImg = pygame.image.load('main_bullet.png')
+bulletX = 0
+bulletY = 480
+bulletX_change = 0
+bulletY_change = 10
+bullet_state = "ready"
+
+# Score
+
+score_value = 0
+font = pygame.font.Font('freesansbold.ttf', 32)
+
+textX = 10
+testY = 10
+
+# Game Over
+over_font = pygame.font.Font('freesansbold.ttf', 64)
 
 
-# Main Game Loop
+def show_score(x, y):
+    score = font.render("Score : " + str(score_value), True, (255, 255, 255))
+    screen.blit(score, (x, y))
+
+
+def game_over_text():
+    over_text = over_font.render("GAME OVER", True, (255, 255, 255))
+    screen.blit(over_text, (200, 250))
+
+
+def player(x, y):
+    screen.blit(playerImg, (x, y))
+
+
+def enemy(x, y, i):
+    screen.blit(enemyImg[i], (x, y))
+
+
+def fire_bullet(x, y):
+    global bullet_state
+    bullet_state = "fire"
+    screen.blit(bulletImg, (x + 16, y + 10))
+
+
+def isCollision(enemyX, enemyY, bulletX, bulletY):
+    distance = math.sqrt(math.pow(enemyX - bulletX, 2) + (math.pow(enemyY - bulletY, 2)))
+    if distance < 27:
+        return True
+    else:
+        return False
+
+
+# Game Loop
+running = True
 while running:
-    # Adding color fill for bc
-    screen.fill((20, 30, 68))
-    # Checking for even: closing game window
+
+    # RGB = Red, Green, Blue
+    screen.fill((0, 0, 0))
+    # Background Image
+    # screen.blit(background, (0, 0))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-            pygame.quit()
-            sys.exit()
-        # If a key is pressed check if right or left
+
+        # if keystroke is pressed check whether its right or left
         if event.type == pygame.KEYDOWN:
-            if (event.key == pygame.K_LEFT) or (event.key == pygame.K_a):
-                # Start going left
-                player.go_left()
-                print("go_left()")
-            if (event.key == pygame.K_RIGHT) or (event.key == pygame.K_d):
-                # Start going right
-                player.go_right()
-                print("go_right()")
-            if event.type == pygame.KEYUP:
-                if (event.key == pygame.K_LEFT) or (event.key == pygame.K_a):
-                    # Stop going left
-                    player.stop_left()
-                    print("stop_left()")
-                if (event.key == pygame.K_RIGHT) or (event.key == pygame.K_d):
-                    # Stop going right
-                    player.stop_right()
-                    print("stop_right()")
-            if event.type == pygame.K_SPACE:
-                player.shoot()
-                print("shoot()")
-    player.move()
-    player.draw()
+            if event.key == pygame.K_LEFT:
+                playerX_change = -1
+            if event.key == pygame.K_RIGHT:
+                playerX_change = 1
+            if event.key == pygame.K_SPACE:
+                if bullet_state is "ready":
+                    # Get the current x cordinate of the spaceship
+                    bulletX = playerX
+                    fire_bullet(bulletX, bulletY)
 
-    # Going thru all enemies and drawing them
-    for i in enemy_list:
-        i.draw()
-        i.move()
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+                playerX_change = 0
+
+    # 5 = 5 + -0.1 -> 5 = 5 - 0.1
+    # 5 = 5 + 0.1
+
+    playerX += playerX_change
+    if playerX <= 0:
+        playerX = 0
+    elif playerX >= 736:
+        playerX = 736
+
+    # Enemy Movement
+    for i in range(num_of_enemies):
+
+        # Game Over
+        if enemyY[i] > 440:
+            for j in range(num_of_enemies):
+                enemyY[j] = 2000
+            game_over_text()
+            break
+
+        enemyX[i] += enemyX_change[i]
+        if enemyX[i] <= 0:
+            enemyX_change[i] = 0.75
+            enemyY[i] += enemyY_change[i]
+        elif enemyX[i] >= 736:
+            enemyX_change[i] = -0.75
+            enemyY[i] += enemyY_change[i]
+
+        # Collision
+        collision = isCollision(enemyX[i], enemyY[i], bulletX, bulletY)
+        if collision:
+            bulletY = 480
+            bullet_state = "ready"
+            score_value += 1
+            enemyX[i] = random.randint(0, 736)
+            enemyY[i] = random.randint(50, 150)
+
+        enemy(enemyX[i], enemyY[i], i)
+
+    # Bullet Movement
+    if bulletY <= 0:
+        bulletY = 480
+        bullet_state = "ready"
+
+    if bullet_state is "fire":
+        fire_bullet(bulletX, bulletY)
+        bulletY -= bulletY_change
+
+    player(playerX, playerY)
+    show_score(textX, testY)
     pygame.display.update()
-
-
-
-
-# Main starship author: https://www.flaticon.com/authors/nhor-phai
